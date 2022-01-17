@@ -1,0 +1,29 @@
+#!/bin/bash
+
+##########################################
+# Dependencies bash script
+##########################################
+
+! [ -v JQ ] && export JQ=/usr/bin/jq
+! [ -v CURL ] && export CURL=/usr/bin/curl
+! [ -v BASE64 ] && export BASE64=/bin/base64
+! [ -v LOGREAD ] && export LOGREAD=/app/library/logread
+! [ -v LOGIN ] && export LOGIN=/app/login
+
+##########################################
+# General error output notice
+##########################################
+
+! [ -v ERRORREQUIRED ] && export ERRORREQUIRED='{"name": "%s", "required": true, "notice": "%s"}'
+! [ -v ERRORLOGIN ] && export ERRORLOGIN='{"status": false, "notice": "Not logged user", "errors": [%s]}'
+! [ -v ERRORMETHOD ] && export ERRORMETHOD='{"status": false, "notice": "In this API you can use only %s method"}'
+! [ -v ERRORNOTIMPLEMENTED ] && export ERRORNOTIMPLEMENTED='{"status": false, "notice": "This command %s are not implemented"}'
+
+##########################################
+# Response values
+##########################################
+
+! [ -v RESPONSEFALSE ] && export RESPONSEFALSE='{"status": false}'
+! [ -v RESPONSEERROR ] && export RESPONSEERROR='{"status": false, "notice": "The request criteria were not met", "errors": [%s]}'
+! [ -v RESPONSETRUE ] && export RESPONSETRUE='{"status": true}'
+! [ -v RESPONSEGET ] && export RESPONSEGET='{"status": true, "data": %s}'

@@ -1,0 +1,67 @@
+#!/bin/bash
+
+source /app/library/require
+
+QUERY='[{"act":"getStatus"}]'
+ 
+while IFS='=' read -r -d '&' key value ; do
+    case $key in
+        protocol) PROTOCOL=${value} ;;
+        host) HOST=${value} ;;
+        port) PORT=${value} ;;
+    esac
+done <<<"${QUERY_STRING}&"
+
+declare -a RESPONSE=()
+
+warning() {
+    value=$(printf "$ERRORREQUIRED" "$1" "$2")
+    RESPONSE+=("$value")
+}
+
+if ! [ -v PROTOCOL ] ; then
+    warning "PROTOCOL" "querystring: Specifies the destination protocol http or https"
+fi
+
+if ! [ -v HOST ] ; then
+    warning "HOST" "querystring: Specifies the destination host"
+fi
+
+if ! [ -v PORT ] ; then
+    warning "PORT" "querystring: Specifies the destination port"
+fi
+
+if [ -z "$HTTP_AUTHORIZATION" ] ; then
+    warning "Authorization" "header: Specifies the http basic authorization https://en.wikipedia.org/wiki/Basic_access_authentication"
+fi
+
+GWCLOGIN=$(echo "${HTTP_AUTHORIZATION:6}" | ${BASE64} -d)
+IFS=':' read USERNAME PASSWORD <<< "$GWCLOGIN"
+
+if [ -z "$USERNAME" ] ; then
+    warning "USERNAME" "login: Specifies the http basic authorization username https://en.wikipedia.org/wiki/Basic_access_authentication"
+fi
+
+if [ -z "$PASSWORD" ] ; then
+    warning "PASSWORD" "login: Specifies the http basic authorization password https://en.wikipedia.org/wiki/Basic_access_authentication"
+fi
+
+if [ ${#RESPONSE[@]} -ne 0 ] ; then
+    notice=$(printf "%s," "${RESPONSE[@]}")
+    printf "$ERRORLOGIN" "${notice%?}"
+    exit 0
+fi
+
+unset RESPONSE
+
+CGI='%s://%s:%s/cgi-bin';
+CGI=$(printf "$CGI" "$PROTOCOL" "$HOST" "$PORT")
+
+CONFIGURATION=$($CURL -s -X POST --compressed "$CGI/userCgi" --data "p=$PASSWORD&u=$USERNAME&query=$QUERY" | $JQ -rc .DATI[0].DATI)
+AUTHORIZATION=$($JQ -rc .k <<< "${CONFIGURATION}")
+AUTHORIZATION="gwc=$AUTHORIZATION"
+SN=$($JQ -rc .sn <<< "$CONFIGURATION")
+
+export SN
+export CGI
+export AUTHORIZATION

@@ -1,0 +1,49 @@
+#!/bin/bash
+
+echo "HTTP/1.0 200 OK"
+echo "Content-type: application/json\n\n"
+echo ""
+
+source /app/library/require
+source /app/login
+
+LOGSUFFIX='05'
+
+JQMAP='{"id":.id|tonumber,"name":.lbl|tostring,"um":.Valore.unit|tostring}'
+JQMAPREDUCE='$description + $values | flatten | group_by(.id) | map(reduce .[] as $x ({}; . * $x))'
+
+logread() {
+    local id=$($JQ -r .data.id <<< "$1")
+    local readable=$($JQ -rc [.data.Grandezze[].id] <<< "$1")
+
+    local data=$($LOGREAD -i "$id" -r "$readable")
+    local datastatus=$($JQ 'if type == "array" then "yes" else "no" end' <<< "${data}")
+
+    if [ "$datastatus" == "no" ] ; then
+      echo "$data"
+      exit 2
+    fi
+
+    readarray -t dataname < <($JQ -r .data.Grandezze[] <<< "$1" | $JQ -rc "$JQMAP")
+    local dataname=$(printf "%s," "${dataname[@]}")
+    local data=$(jq -c --argjson description "[${dataname%?}]" --argjson values "$data" -s "$JQMAPREDUCE")
+
+    if [ -z "$data" ] ; then
+      echo "$RESPONSEFALSE"
+      exit 1
+    fi
+
+    printf "$RESPONSEGET" "${data}"
+    exit 0
+}
+
+QUERY='query=[{"act":"getConf","idReq":"getConf","DATI":{}}]'
+
+readarray -t MODULES < <($CURL -s -X POST --compressed "$CGI/mainGwcCgi" -b "$AUTHORIZATION" --data "$QUERY" | $JQ -rc .DATI[0].DATI.moduls.modulsArr[])
+
+for item in "${MODULES[@]}"; do
+  name=$($JQ -rc .data.lbl <<< $item)
+  [ "${name:0:2}" = "$LOGSUFFIX" ] && logread "$item"
+done
+
+exit 0

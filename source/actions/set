@@ -1,0 +1,98 @@
+#!/bin/bash
+
+echo "HTTP/1.0 200 OK"
+echo "Content-type: application/json\n\n"
+echo ""
+
+exists() {
+    declare -f -F $1 > /dev/null
+    return $?
+}
+
+source /app/library/require
+source /app/login
+
+LOGSUFFIX='01'
+
+GET='query=[{"act":"getNonVolatile","idReq":"getNonVolatile","sn":"%s","DATI":{"idPlugin":%s}}]'
+GETPATTERN=".DATI[0].DATI.nonVolatile.%s.value"
+GETREQUESTWRITE='query=[{"act":"modNonVolatile","idReq":"modNonVolatile","sn":"%s","DATI":{"idPlugin":%s,"data":{"name":"%s","value":%s}}}]'
+
+VALUE=$(cat)
+
+declare -a RESPONSE=()
+
+warning() {
+    value=$(printf "$ERRORREQUIRED" "$1" "$2")
+    RESPONSE+=("${value}")
+}
+
+if ! [[ "$VALUE" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+    warning "post" "uncorrect: stand for only numeric value"
+fi
+
+if [ ${#RESPONSE[@]} -ne 0 ] ; then
+    notice=$(printf "%s," "${RESPONSE[@]}")
+    printf "$RESPONSEERROR" "${notice%?}"
+    exit 1
+fi
+
+unset RESPONSE
+
+generate() {
+    local id=$($JQ -r .data.id <<< "$1")
+    local QUERY=$(printf "$GET" "$SN" "$id")
+    local QUERYEXTRACT=$(printf "$GETPATTERN" "$2")
+    local DATA=$($CURL -s -X POST --compressed "$CGI/pluginManager.cgi" -b "$AUTHORIZATION" --data "$QUERY" | $JQ -r "$QUERYEXTRACT" | $JQ -rc "$3")
+
+    printf "$GETREQUESTWRITE" "$SN" "$id" "$2" "$DATA"
+
+    return 0
+}
+
+configure() {
+    local QUERY=$(generate "$1" "$2" "$3")
+    local RESPONSE=$($CURL -s -X POST --compressed "$CGI/pluginManager.cgi" -b "$AUTHORIZATION" --data "$QUERY")
+    echo "$RESPONSETRUE"
+    exit 1
+}
+
+threshold() {
+    local modifier='.DATI[0]=%d';
+    local modifier=$(printf "$modifier" "$VALUE")
+
+    configure "$1" 'vlp_nonV_CLIENTE_Vmin_A' "$modifier"
+}
+
+bypass() {
+    [[ $VALUE = 1 ]] && index=20 || index=22
+
+    local modifier='.BUT_1_10[%d]=1 | .BUT_1_10[40]=6';
+    local modifier=$(printf "$modifier" "$index")
+
+    configure "$1" 'vlp_nonV_but_1_10' "$modifier"
+}
+
+if [ "$REQUEST_METHOD" != "POST" ] || [ "$CONTENT_LENGTH" -eq 0 ] ; then
+    printf "${ERRORMETHOD}" "POST"
+    exit 1
+fi
+
+COMMAND=$(basename "${DOCUMENT_URI}")
+
+if ! exists ${COMMAND} ; then
+    printf "${ERRORNOTIMPLEMENTED}" "${COMMAND}"
+    exit 1
+fi
+
+QUERY='query=[{"act":"getConf","idReq":"getConf","DATI":{}}]'
+
+readarray -t MODULES < <($CURL -s -X POST --compressed "$CGI/mainGwcCgi" -b "$AUTHORIZATION" --data "$QUERY" | $JQ -rc .DATI[0].DATI.moduls.modulsArr[])
+
+for item in "${MODULES[@]}"; do
+  name=$($JQ -rc .data.lbl <<< $item)
+  [ "${name:0:2}" = "$LOGSUFFIX" ] && ${COMMAND} "$item"
+done
+
+echo "$RESPONSEFALSE"
+exit 0

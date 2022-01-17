@@ -1,0 +1,44 @@
+#!/bin/bash
+
+source /app/library/require
+
+while getopts i:r: options; do
+   case ${options} in
+      i) ID=${OPTARG} ;;
+      r) READABLE=${OPTARG} ;;
+   esac
+done
+
+declare -a RESPONSE=()
+
+warning() {
+    value=$(printf "$ERRORREQUIRED" "$1" "$2")
+    RESPONSE+=("${value}")
+}
+
+if ! [ -v ID ] || ! [[ "$ID" =~ ^[0-9]+$ ]]; then
+    warning "ID" "argument: -i stand for id"
+fi
+
+if ! [ -v READABLE ] || ! [[ "$READABLE" =~ ^\[(\"?[0-9]+\"?[\,]?)+\]$ ]] ; then
+    warning "READABLE" "argument: -r stand for download varaibles formatted array"
+fi
+
+if [ ${#RESPONSE[@]} -ne 0 ] ; then
+    notice=$(printf "%s," "${RESPONSE[@]}")
+    printf "$RESPONSEERROR" "${notice%?}"
+    exit 1
+fi
+
+unset RESPONSE
+
+QUERY='query=[{"act":"getGrValues","idReq":%d,"sn":"%s","DATI":[{"idLog":%s,"addTzOff":1,"items":%s}]}]'
+QUERY=$(printf "$QUERY" $(date +%s%3N) "$SN" "$ID" "$READABLE")
+
+JQMAP='{"id":.id|tonumber,"utc":.utc|tonumber,"value":.value|tonumber}'
+readarray -t VALUES < <($CURL -s -X POST --compressed "$CGI/acqModCgi" -b "$AUTHORIZATION" --data "$QUERY" | $JQ -r .DATI[0].DATI[0].items[] | $JQ -rc "$JQMAP")
+
+data=$(printf "%s," "${VALUES[@]}")
+echo "[${data%?}]"
+
+exit 0

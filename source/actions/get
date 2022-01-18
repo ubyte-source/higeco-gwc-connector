@@ -23,6 +23,10 @@ logread() {
       echo "$data"
       exit 2
     fi
+    if [ ${#data} -eq 2 ] ; then
+      echo "$RESPONSEFALSE"
+      exit 0
+    fi
 
     readarray -t dataname < <($JQ -r .data.Grandezze[] <<< "$1" | $JQ -rc "$JQMAP")
     local dataname=$(printf "%s," "${dataname[@]}")

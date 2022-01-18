@@ -4,7 +4,7 @@ echo "HTTP/1.0 200 OK"
 echo "Content-type: application/json\n\n"
 echo ""
 
-FUNCTIONPREFIX='_call'
+FUNCTIONPREFIX='call'
 
 commandexists() {
     declare -f -F $1 > /dev/null
@@ -91,8 +91,6 @@ if ! commandexists ${COMMAND} ; then
     printf "${ERRORNOTIMPLEMENTED}" "${COMMAND}"
     exit 1
 fi
-
-echo ${COMMAND}
 
 QUERY='query=[{"act":"getConf","idReq":"getConf","DATI":{}}]'
 

@@ -22,7 +22,7 @@ The container do not require any specified configuration because the software wo
 ## Docker cli
 
 ```
-docker run -dit --restart always -ubyte/higeco-gwc-connector:latest
+docker run -dit --restart always -p 80:8080 -p 443:8443 ubyte/higeco-gwc-connector:latest
 ```
 
 ## Features

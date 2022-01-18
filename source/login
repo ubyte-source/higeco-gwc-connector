@@ -57,7 +57,7 @@ unset RESPONSE
 CGI='%s://%s:%s/cgi-bin';
 CGI=$(printf "$CGI" "$PROTOCOL" "$HOST" "$PORT")
 
-CONFIGURATION=$($CURL -s -X POST --compressed "$CGI/userCgi" --data "p=$PASSWORD&u=$USERNAME&query=$QUERY" | $JQ -rc .DATI[0].DATI)
+CONFIGURATION=$($CURL -s -k -X POST --compressed "$CGI/userCgi" --data "p=$PASSWORD&u=$USERNAME&query=$QUERY" | $JQ -rc .DATI[0].DATI)
 AUTHORIZATION=$($JQ -rc .k <<< "${CONFIGURATION}")
 AUTHORIZATION="gwc=$AUTHORIZATION"
 SN=$($JQ -rc .sn <<< "$CONFIGURATION")

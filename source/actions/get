@@ -39,11 +39,12 @@ logread() {
 
 QUERY='query=[{"act":"getConf","idReq":"getConf","DATI":{}}]'
 
-readarray -t MODULES < <($CURL -s -X POST --compressed "$CGI/mainGwcCgi" -b "$AUTHORIZATION" --data "$QUERY" | $JQ -rc .DATI[0].DATI.moduls.modulsArr[])
+readarray -t MODULES < <($CURL -s -k -X POST --compressed "$CGI/mainGwcCgi" -b "$AUTHORIZATION" --data "$QUERY" | $JQ -rc .DATI[0].DATI.moduls.modulsArr[])
 
 for item in "${MODULES[@]}"; do
   name=$($JQ -rc .data.lbl <<< $item)
   [ "${name:0:2}" = "$LOGSUFFIX" ] && logread "$item"
 done
 
+echo "$RESPONSEFALSE"
 exit 0

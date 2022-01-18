@@ -36,7 +36,7 @@ QUERY='query=[{"act":"getGrValues","idReq":%d,"sn":"%s","DATI":[{"idLog":%s,"add
 QUERY=$(printf "$QUERY" $(date +%s%3N) "$SN" "$ID" "$READABLE")
 
 JQMAP='{"id":.id|tonumber,"utc":.utc|tonumber,"value":.value|tonumber}'
-readarray -t VALUES < <($CURL -s -X POST --compressed "$CGI/acqModCgi" -b "$AUTHORIZATION" --data "$QUERY" | $JQ -r .DATI[0].DATI[0].items[] | $JQ -rc "$JQMAP")
+readarray -t VALUES < <($CURL -s -k -X POST --compressed "$CGI/acqModCgi" -b "$AUTHORIZATION" --data "$QUERY" | $JQ -r .DATI[0].DATI[0].items[] | $JQ -rc "$JQMAP")
 
 data=$(printf "%s," "${VALUES[@]}")
 echo "[${data%?}]"

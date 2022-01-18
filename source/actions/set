@@ -4,7 +4,9 @@ echo "HTTP/1.0 200 OK"
 echo "Content-type: application/json\n\n"
 echo ""
 
-exists() {
+FUNCTIONPREFIX='_call'
+
+commandexists() {
     declare -f -F $1 > /dev/null
     return $?
 }
@@ -43,7 +45,7 @@ generate() {
     local id=$($JQ -r .data.id <<< "$1")
     local QUERY=$(printf "$GET" "$SN" "$id")
     local QUERYEXTRACT=$(printf "$GETPATTERN" "$2")
-    local DATA=$($CURL -s -X POST --compressed "$CGI/pluginManager.cgi" -b "$AUTHORIZATION" --data "$QUERY" | $JQ -r "$QUERYEXTRACT" | $JQ -rc "$3")
+    local DATA=$($CURL -s -k -X POST --compressed "$CGI/pluginManager.cgi" -b "$AUTHORIZATION" --data "$QUERY" | $JQ -r "$QUERYEXTRACT" | $JQ -rc "$3")
 
     printf "$GETREQUESTWRITE" "$SN" "$id" "$2" "$DATA"
 
@@ -52,19 +54,23 @@ generate() {
 
 configure() {
     local QUERY=$(generate "$1" "$2" "$3")
-    local RESPONSE=$($CURL -s -X POST --compressed "$CGI/pluginManager.cgi" -b "$AUTHORIZATION" --data "$QUERY")
+    local RESPONSE=$($CURL -s -k -X POST --compressed "$CGI/pluginManager.cgi" -b "$AUTHORIZATION" --data "$QUERY")
     echo "$RESPONSETRUE"
     exit 1
 }
 
-threshold() {
+##########################################
+# Allowed function with start $FUNCTIONPREFIX
+##########################################
+
+callthreshold() {
     local modifier='.DATI[0]=%d';
     local modifier=$(printf "$modifier" "$VALUE")
 
     configure "$1" 'vlp_nonV_CLIENTE_Vmin_A' "$modifier"
 }
 
-bypass() {
+callbypass() {
     [[ $VALUE = 1 ]] && index=20 || index=22
 
     local modifier='.BUT_1_10[%d]=1 | .BUT_1_10[40]=6';
@@ -79,15 +85,18 @@ if [ "$REQUEST_METHOD" != "POST" ] || [ "$CONTENT_LENGTH" -eq 0 ] ; then
 fi
 
 COMMAND=$(basename "${DOCUMENT_URI}")
+COMMAND="$FUNCTIONPREFIX$COMMAND"
 
-if ! exists ${COMMAND} ; then
+if ! commandexists ${COMMAND} ; then
     printf "${ERRORNOTIMPLEMENTED}" "${COMMAND}"
     exit 1
 fi
 
+echo ${COMMAND}
+
 QUERY='query=[{"act":"getConf","idReq":"getConf","DATI":{}}]'
 
-readarray -t MODULES < <($CURL -s -X POST --compressed "$CGI/mainGwcCgi" -b "$AUTHORIZATION" --data "$QUERY" | $JQ -rc .DATI[0].DATI.moduls.modulsArr[])
+readarray -t MODULES < <($CURL -s -k -X POST --compressed "$CGI/mainGwcCgi" -b "$AUTHORIZATION" --data "$QUERY" | $JQ -rc .DATI[0].DATI.moduls.modulsArr[])
 
 for item in "${MODULES[@]}"; do
   name=$($JQ -rc .data.lbl <<< $item)

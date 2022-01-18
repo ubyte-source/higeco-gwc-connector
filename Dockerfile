@@ -4,7 +4,7 @@ ENV STARTUP_COMMAND_RUN_FASTCGIWRAP "fcgiwrap -c 5 -f -s unix:/home/www/fcgiwrap
 ENV STARTUP_COMMAND_RUN_NGINX "nginx"
 
 RUN apk update && \
-    apk add --no-cache nginx fcgiwrap bash jq curl && \
+    apk add --no-cache nginx fcgiwrap bash jq curl openssl && \
     rm -rf /var/cache/apk/*
 
 COPY ./source /app

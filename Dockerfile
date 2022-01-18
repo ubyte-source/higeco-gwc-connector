@@ -7,13 +7,16 @@ RUN apk update && \
     apk add --no-cache nginx fcgiwrap bash jq curl openssl && \
     rm -rf /var/cache/apk/*
 
+COPY ./ssl/certificate.key /etc/ssl/certificate.key
+COPY ./ssl/certificate.pem /etc/ssl/certificate.pem
+
 COPY ./source /app
 
 COPY wrapper.sh /
 COPY nginx.conf /etc/nginx/nginx.conf
 
 RUN adduser -D -g www www && \
-    chown -R www:www /var/lib/nginx /var/log/nginx /app && \
+    chown -R www:www /var/lib/nginx /var/log/nginx /app /etc/ssl && \
     chmod +x -R /app && \
     chmod +x wrapper.sh
 
@@ -21,5 +24,7 @@ RUN rm -Rf /etc/nginx/sites-enabled && \
     rm -Rf /etc/nginx/sites-available
 
 USER www
+
+EXPOSE 8080/TCP 8443/TCP
 
 ENTRYPOINT /wrapper.sh

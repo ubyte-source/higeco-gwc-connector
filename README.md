@@ -50,8 +50,10 @@ How to set the header to perform requests:
 | ------ | ------ |
 | Authorization | Basic <base64 username:password> |
 
+> You can use the HTTP/HTTPS protocol. Both have been implemented and exposed by the middleware to their respective ports HTTP/8080 and HTTPS/8443.
+
 ```
-curl --user name:password http://my.middleware.instance.lan/get?host=<e-controller-ip>&port=<e-controller-port>&protocol=<e-controller-protocol>
+curl --user name:password https://my.middleware.instance.lan/get?host=<e-controller-ip>&port=<e-controller-port>&protocol=<e-controller-protocol>
 ```
 
 OR
@@ -59,12 +61,12 @@ OR
 Eexplicitly indicate the Authentication Header
 
 ```
-curl -H "authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=" http://my.middleware.instance.lan/get?host=<e-controller-ip>&port=<e-controller-port>&protocol=<e-controller-protocol>
+curl -H "authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=" https://my.middleware.instance.lan/get?host=<e-controller-ip>&port=<e-controller-port>&protocol=<e-controller-protocol>
 ```
 
 ## Read data
 
-Below there is an example of data download from a remote e-controller http://192.168.80.100:8001/
+Below there is an example of data download from a remote e-controller https://192.168.80.100:8001/
 
 ### Success - HTTP 200
 
@@ -72,7 +74,7 @@ Sometimes it could happen that the data that are displayed aren't configured by 
 In this case, the omitted values take the value zero.
 
 ```
-curl -H "authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=" http://192.168.180.180:8078/get?host=192.168.80.100&port=8001&protocol=http
+curl -H "authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=" https://192.168.180.180:8078/get?host=192.168.80.100&port=8001&protocol=https
 ```
 
 ```
@@ -111,7 +113,7 @@ As you can see from the example below, you can easily understand when a problem 
 In this case, the system returns "status:false"
 
 ```
-curl -H "authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=" http://192.168.180.180:8078/get?host=192.168.80.100
+curl -H "authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=" https://192.168.180.180:8078/get?host=192.168.80.100
 ```
 
 ```
@@ -139,10 +141,10 @@ This software allows you to set specific configurations that are often required 
 
 ### Set Threshold
 
-Below there is an example of how setting up the configuration threshold on a remote e-controller http://192.168.80.100:8001/
+Below there is an example of how setting up the configuration threshold on a remote e-controller https://192.168.80.100:8001/
 
 ```
-curl -H "authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=" -X POST --data '216.4' http://192.168.180.180:8078/set/threshold?host=192.168.80.100&port=8001&protocol=http
+curl -H "authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=" -X POST --data '216.4' https://192.168.180.180:8078/set/threshold?host=192.168.80.100&port=8001&protocol=https
 ```
 
 The middleware will do a quick check to verify that the data being sent is a number.
@@ -153,7 +155,7 @@ Strings cannot be configured using this system
 ```
 ### Set Bypass or Saving
 
-Below there is an example of how execute a bypass command on a remote e-controller http://192.168.80.100:8001/
+Below there is an example of how execute a bypass command on a remote e-controller https://192.168.80.100:8001/
 
 | value | description |
 | ------ | ------ |
@@ -161,7 +163,7 @@ Below there is an example of how execute a bypass command on a remote e-controll
 | 1 | Send command to perform bypass command |
 
 ```
-curl -H "authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=" -X POST --data '1' http://192.168.180.180:8078/set/bypass?host=192.168.80.100&port=8001&protocol=http
+curl -H "authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=" -X POST --data '1' https://192.168.180.180:8078/set/bypass?host=192.168.80.100&port=8001&protocol=https
 ```
 
 The middleware will do a quick check to verify that the data being sent is a number.
@@ -185,7 +187,7 @@ Please read [CONTRIBUTING.md](https://github.com/energia-source/higeco-gwc-conne
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/energia-source/higeco-gwc-connector/tags). 
+We use [SemVer](https://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/energia-source/higeco-gwc-connector/tags). 
 
 ## Authors
 

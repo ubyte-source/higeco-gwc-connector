@@ -17,7 +17,7 @@ done
 
 runner() {
     echo "Stop this container."
-    #kill -SIGINT 1
+    kill -SIGINT 1
 }
 
 trap runner SIGINT SIGQUIT SIGTERM
@@ -29,7 +29,7 @@ while sleep 8 & wait $!; do
     # Grep process status
 
     process="${line#*=}"
-    ps aux | grep "${process%% *}" | grep -v grep
+    ps aux | grep "${process%% *}" | grep -v grep > /dev/null
 
     # If the greps above find anything, they exit with 0 status
     # If they are not both 0, then something is wrong

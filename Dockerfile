@@ -1,7 +1,7 @@
 FROM amd64/alpine:3.15
 
-ENV STARTUP_COMMAND_RUN_FASTCGIWRAP "fcgiwrap -c 5 -f -s unix:/home/www/fcgiwrap.socket"
-ENV STARTUP_COMMAND_RUN_NGINX "nginx"
+ENV STARTUP_COMMAND_RUN_FASTCGIWRAP="fcgiwrap -c 5 -f -s unix:/home/www/fcgiwrap.socket"
+ENV STARTUP_COMMAND_RUN_NGINX="nginx"
 
 RUN apk update && \
     apk add --no-cache nginx fcgiwrap bash jq curl openssl && \
@@ -23,8 +23,8 @@ RUN adduser -D -g www www && \
 RUN rm -Rf /etc/nginx/sites-enabled && \
     rm -Rf /etc/nginx/sites-available
 
-USER www
-
 EXPOSE 8080/TCP 8443/TCP
+
+USER www
 
 ENTRYPOINT /wrapper.sh

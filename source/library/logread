@@ -16,7 +16,7 @@ warning() {
     RESPONSE+=("${value}")
 }
 
-if ! [ -v ID ] || ! [[ "$ID" =~ ^[0-9]+$ ]]; then
+if ! [ -v ID ] || ! [[ "$ID" =~ ^[0-9]+$ ]] ; then
     warning "ID" "argument: -i stand for id"
 fi
 

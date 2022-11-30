@@ -29,7 +29,7 @@ warning() {
     RESPONSE+=("${value}")
 }
 
-if ! [[ "$VALUE" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+if ! [[ "$VALUE" =~ ^[0-9]+(\.[0-9]+)?$ ]] ; then
     warning "post" "uncorrect: stand for only numeric value"
 fi
 
